@@ -1,63 +1,60 @@
 package com.tabiblink.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class EmailService {
 
-    @Autowired
-    private JavaMailSender mailSender;
+    @Value("${BREVO_API_KEY}")
+    private String brevoApiKey;
 
     public void envoyerCodeVerification(String destinataire, String code) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(destinataire);
-        message.setSubject("Code de vérification TabibLink");
-        message.setText(
-                "Bonjour,\n\n" +
-                        "Votre code de vérification TabibLink est : " + code + "\n\n" +
-                        "Ce code expire dans 10 minutes.\n\n" +
-                        "Cordialement,\nTabibLink"
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        String url = "https://api.brevo.com/v3/smtp/email";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("api-key", brevoApiKey);
+
+        Map<String, Object> body = new HashMap<>();
+
+        Map<String, String> sender = new HashMap<>();
+        sender.put("name", "TabibLink");
+        sender.put("email", "tabiblink.app@gmail.com");
+
+        body.put("sender", sender);
+
+        body.put("to", new Object[]{
+                Map.of("email", destinataire)
+        });
+
+        body.put("subject", "Code de vérification TabibLink");
+
+        body.put(
+                "htmlContent",
+                "<h2>TabibLink</h2>"
+                        + "<p>Votre code de vérification est :</p>"
+                        + "<h1>" + code + "</h1>"
+                        + "<p>Ce code expire dans 10 minutes.</p>"
         );
 
-        mailSender.send(message);
-    }
+        HttpEntity<Map<String, Object>> request =
+                new HttpEntity<>(body, headers);
 
-    public void envoyerRappelRendezVous(
-            String destinataire,
-            String patientNomComplet,
-            String medecinNomComplet,
-            String specialite,
-            String lieu,
-            String date,
-            String heure
-    ) {
-        SimpleMailMessage message = new SimpleMailMessage();
-
-        message.setTo(destinataire);
-        message.setSubject("Rappel de votre rendez-vous médical - TabibLink");
-
-        message.setText(
-                "Bonjour " + patientNomComplet + ",\n\n" +
-
-                        "Nous vous rappelons que vous avez un rendez-vous médical prévu demain à "
-                        + heure + " avec Dr " + medecinNomComplet + ".\n\n" +
-
-                        "Spécialité : " + specialite + "\n" +
-                        "Lieu : " + lieu + "\n" +
-                        "Date : " + date + "\n" +
-                        "Heure : " + heure + "\n\n" +
-
-                        "Merci de vous présenter à l’heure prévue.\n\n" +
-
-                        "Si vous ne pouvez pas assister au rendez-vous, veuillez l’annuler ou le reprogrammer depuis votre espace patient TabibLink.\n\n" +
-
-                        "Cordialement,\n" +
-                        "L’équipe TabibLink"
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                url,
+                request,
+                String.class
         );
 
-        mailSender.send(message);
+        System.out.println("BREVO RESPONSE: " + response.getBody());
     }
 }

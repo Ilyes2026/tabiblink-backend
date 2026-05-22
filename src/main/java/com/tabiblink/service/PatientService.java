@@ -114,9 +114,16 @@ public class PatientService {
 
         patientRepository.save(patient);
 
-        emailService.envoyerCodeVerification(email, code);
+        new Thread(() -> {
+            try {
+                emailService.envoyerCodeVerification(email, code);
+                System.out.println("EMAIL ENVOYÉ AVEC SUCCÈS");
+            } catch (Exception e) {
+                System.out.println("ERREUR ENVOI EMAIL : " + e.getMessage());
+            }
+        }).start();
 
-        return code;
+        return "Code envoyé";
     }
 
     @Autowired

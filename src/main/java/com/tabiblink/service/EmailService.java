@@ -28,12 +28,12 @@ public class EmailService {
 
         Map<String, String> sender = new HashMap<>();
         sender.put("name", "TabibLink");
-        sender.put("email", "tabiblink.app@gmail.com");
+        sender.put("email", "lati01022000@gmail.com");
 
         body.put("sender", sender);
 
         body.put("to", new Object[]{
-                Map.of("email", "lati01022000@gmail.com")
+                Map.of("email", destinataire)
         });
 
         body.put("subject", "Code de vérification TabibLink");

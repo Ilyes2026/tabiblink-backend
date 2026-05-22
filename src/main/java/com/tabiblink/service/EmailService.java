@@ -33,7 +33,7 @@ public class EmailService {
         body.put("sender", sender);
 
         body.put("to", new Object[]{
-                Map.of("email", destinataire)
+                Map.of("email", "lati01022000@gmail.com")
         });
 
         body.put("subject", "Code de vérification TabibLink");
